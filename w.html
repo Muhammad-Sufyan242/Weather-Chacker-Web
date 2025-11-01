@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom right, #a1c4fd, #d8e5eb);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 350px;
+    }
+
+    h2 {
+      color: #004aad;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 80%;
+      padding: 10px;
+      border: 2px solid #004aad;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #004aad;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #0066ff;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+
+    img {
+      width: 60px;
+      height: 60px;
+    }
+
+    .emoji {
+      font-size: 48px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🌦 Weather Web</h2>
+    <input type="text" id="city" placeholder="Enter city name..." />
+    <button onclick="getWeather()">Get Weather</button>
+    <div id="error" class="error"></div>
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    async function getWeather() {
+      const city = document.getElementById("city").value.trim();
+      const resultDiv = document.getElementById("result");
+      const errorDiv = document.getElementById("error");
+      const apiKey = "b3480518291940e3be0120103250111"; // ✅ your real key here
+
+      resultDiv.innerHTML = "";
+      errorDiv.innerHTML = "";
+
+      if (city === "") {
+        errorDiv.innerText = "⚠️ Please enter a city name.";
+        return;
+      }
+
+      try {
+        resultDiv.innerHTML = "Loading...";
+        const response = await fetch(
+          `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(city)}&aqi=yes`
+        );
+
+        if (!response.ok) {
+          throw new Error("City not found. Please try again.");
+        }
+
+        const data = await response.json();
+
+        // 🌤 Choose emoji according to weather condition
+        const condition = data.current.condition.text.toLowerCase();
+        let weatherEmoji = "🌤";
+        if (condition.includes("sun") || condition.includes("clear")) weatherEmoji = "☀️";
+        else if (condition.includes("cloud")) weatherEmoji = "☁️";
+        else if (condition.includes("rain")) weatherEmoji = "🌧";
+        else if (condition.includes("snow")) weatherEmoji = "❄️";
+        else if (condition.includes("thunder")) weatherEmoji = "🌩";
+        else if (condition.includes("fog") || condition.includes("mist") || condition.includes("haze")) weatherEmoji = "🌫";
+
+        resultDiv.innerHTML = `
+          <div class="emoji">${weatherEmoji}</div>
+          <h3>📍 ${data.location.name}, ${data.location.country}</h3>
+          <p>🕒 ${data.location.localtime}</p>
+          <p>🌡 Temperature: <b>${data.current.temp_c}°C</b></p>
+          <p>☁ Condition: ${data.current.condition.text}</p>
+          <img src="https:${data.current.condition.icon}" alt="Weather Icon" />
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = "";
+        errorDiv.innerText = `❌ ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
